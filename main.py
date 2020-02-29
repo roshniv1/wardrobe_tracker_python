@@ -1,8 +1,8 @@
-""" This code creates a basic wardrobe tracker app using the Kivy package.
-Currently functionality includes the ability to add and remove items and
-updating the database. Planned upgrades include adding different wardrobe
-categories, checking for duplicate items and adding photos.
+""" This code creates a basic wardrobe tracker app using the Kivy package. Currently functionality includes the ability
+to add and remove items and updating the database. Planned upgrades include adding different wardrobe categories,
+checking for duplicate items and adding photos.
 """
+
 from kivy.uix.screenmanager import Screen
 from kivymd.uix.dialog import MDDialog, MDInputDialog
 from kivy.lang import Builder
