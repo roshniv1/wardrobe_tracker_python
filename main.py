@@ -1,37 +1,148 @@
 """
 This code creates a basic wardrobe tracker app using the Kivy package. Currently functionality includes the ability
-to add and remove items and updating the database. Planned upgrades include adding different wardrobe categories and
-photos.
+to add and remove items and updating the database. Planned upgrades include adding photos and item count.
 """
 
-from kivy.uix.screenmanager import Screen
-from kivymd.uix.dialog import MDDialog, MDInputDialog
+from kivy.uix.screenmanager import Screen, ScreenManager
+from kivymd.uix.dialog import MDDialog
 from kivy.lang import Builder
 from kivymd.app import MDApp
 from kivy.factory import Factory
 from kivymd.uix.list import OneLineAvatarIconListItem
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.button import Button
+from kivy.uix.popup import Popup
 import sqlite3 as sql
 
 kv = '''   
+#:import MDDropdownMenu kivymd.uix.menu.MDDropdownMenu
+
 <ListItemWithIcon@OneLineAvatarIconListItem>:
     IconRightWidget:
         icon: "minus"
         on_release:
             root.confirm_dialog()
-                 
-ViewWindow:
-    name : "View"
+   
+WindowManager:
+    MainWindow:
+        id: main
+        name: "Main"
+    AddWindow:
+        id: add
+    
+<MainWindow>:
+    name : "Main"
     MDToolbar:
         size_hint:1,0.1
-        pos_hint:{"top":1}
-        title: "Wardrobe"
-        right_action_items: [["plus", lambda x: root.input_dialog()]]
+        pos_hint:{'top':1}
+        title: 'Wardrobe'
+        right_action_items: [['filter', lambda x: root.filter_category()], \
+        ['plus', lambda x: root.manager.switch_to(root.manager.ids.add, direction = 'left')]]
     ScrollView:
-        pos_hint:{"top":0.9}
+        pos_hint:{'top':0.9}
         size_hint:1,0.9
         MDList:
-            id: container       
+            id: container     
+            
+<AddWindow>:
+    on_pre_enter: wardrobe_item.text = ''
+    name: "Add"
+    MDToolbar:
+        size_hint:1,0.1
+        pos_hint:{'top':1}
+        left_action_items: [('arrow-left', lambda x: root.manager.switch_to(root.manager.ids.main, direction = 'right'))]
+    MDTextField:
+        id: wardrobe_item
+        pos_hint: {"top": 0.85, "center_x": 0.5}
+        size_hint: 0.9,None
+        helper_text: "Name your wardrobe item and select category"
+        helper_text_mode: "persistent"
+    MDDropDownItem:
+        id: wardrobe_category
+        pos_hint: {"top":0.5, "center_x": 0.5}
+        items: root.manager.category
+        dropdown_bg: [1, 1, 1, 1]
+        dropdown_width_mult : 2  
+    Button:
+        text: "Add"
+        pos_hint: {"top":0.1}
+        size_hint: 1,0.1
+        on_press: root.add_item(wardrobe_item.text, wardrobe_category.current_item)
 '''
+
+
+class WindowManager(ScreenManager):
+    ScreenManager.category = {"Tops": 0, "Bottoms": 1, "Dresses": 2, "Jackets": 3, "Accessories": 4}
+
+
+class MainWindow(Screen):
+    # Popup to filter item category
+    def filter_category(self):
+        # List of categories to display as buttons
+        wardrobe_category = self.manager.category
+
+        # Buttons shown in popup
+        box = BoxLayout(orientation='vertical')
+        popup = Popup(title='Category', content=box, size_hint=(0.7, 0.5), separator_color=(0.4, 0.4, 0.4, 1))
+
+        box.add_widget(Button(text="All", background_normal='', color=(0, 0, 0, 1),
+                              on_press=lambda button: self.filter_view(button.text),
+                              on_release=lambda x: popup.dismiss()))
+
+        for key, value in enumerate(wardrobe_category):
+            box.add_widget(Button(text=value, background_normal='', color=(0, 0, 0, 1),
+                                  on_press=lambda button: self.filter_view(button.text),
+                                  on_release=lambda x: popup.dismiss()))
+        popup.open()
+
+    def filter_view(self, wardrobe_category):
+        # Filter items, clear widgets and select by category
+        self.ids.container.clear_widgets()
+
+        con = sql.connect("demo.db")
+        cur = con.cursor()
+
+        if wardrobe_category == "All" :
+            cur.execute("""SELECT * FROM Wardrobe""")
+        else:
+            wardrobe_category = self.manager.category[wardrobe_category]
+            cur.execute("""SELECT * FROM Wardrobe WHERE category = (?)""", [wardrobe_category])
+
+        rows = cur.fetchall()
+
+        # Add item to scroll view
+        for row in rows:
+            self.ids.container.add_widget(
+                Factory.ListItemWithIcon(text=row[0])
+            )
+
+        con.close()
+
+
+class AddWindow(Screen):
+
+    def add_item(self, wardrobe_item, wardrobe_category):
+        # Add wardrobe items to scroll view and database
+
+        con = sql.connect("demo.db")
+        cur = con.cursor()
+        cur.execute("""SELECT * FROM Wardrobe WHERE item = (?)""", [wardrobe_item])
+
+        # If item does not already exist, add item
+        if cur.fetchone() is None:
+            self.manager.ids.main.ids.container.add_widget(Factory.ListItemWithIcon(text=wardrobe_item))
+            cur.execute("""INSERT INTO Wardrobe (item, category) VALUES (?,?)""",
+                        (wardrobe_item, self.manager.category[wardrobe_category]))
+            self.manager.switch_to(self.parent.ids.main, direction='right')
+
+        # If item exists, display error popup
+        else:
+            dup_dialog = MDDialog(title="Existing Item", text="This item already exists", text_button_ok="Go Back",
+                                  size_hint=[0.5, 0.5])
+            dup_dialog.open()
+
+        con.commit()
+        con.close()
 
 
 class ListItemWithIcon(OneLineAvatarIconListItem):
@@ -51,51 +162,24 @@ class ListItemWithIcon(OneLineAvatarIconListItem):
             con.commit()
             con.close()
             app = MDApp.get_running_app()
-            app.root.ids.container.remove_widget(self)
-
-
-class ViewWindow(Screen):
-    # Popup to add wardrobe item
-    def input_dialog(self, *args):
-        input_dialog = MDInputDialog(title="Add Item", hint_text="Type new wardrobe item", text_button_ok="Add",
-                                     events_callback=self.add_item, size_hint=[0.5, 0.5])
-        input_dialog.open()
-
-    # Adds item to widget and table
-    def add_item(self, selection_text, popup_widget):
-        con = sql.connect("demo.db")
-        cur = con.cursor()
-        cur.execute("""SELECT * FROM Wardrobe WHERE item = (?)""", [popup_widget.text_field.text])
-        if cur.fetchone() is None:
-            self.ids.container.add_widget(Factory.ListItemWithIcon(text=popup_widget.text_field.text))
-            cur.execute("""INSERT INTO Wardrobe (item) VALUES (?)""", [popup_widget.text_field.text])
-        else:
-            dup_dialog = MDDialog(title="Existing Item", text="This item already exists", auto_dismiss=True,
-                                  text_button_ok="Go Back", events_callback=self.input_dialog, size_hint=[0.5, 0.5])
-            dup_dialog.open()
-        con.commit()
-        con.close()
+            app.root.ids.main.ids.container.remove_widget(self)
 
 
 class MyMainApp(MDApp):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.screen = Builder.load_string(kv)
 
     def build(self):
-        return self.screen
+        return Builder.load_string(kv)
 
     def on_start(self):
         con = sql.connect("demo.db")
         cur = con.cursor()
-        cur.execute("""CREATE TABLE IF NOT EXISTS Wardrobe(item text)""")
-        cur.execute("""SELECT * FROM Wardrobe""")
+        cur.execute("""CREATE TABLE IF NOT EXISTS Wardrobe(item TEXT NOT NULL UNIQUE, category TEXT)""")
+        cur.execute("""SELECT * FROM Wardrobe ORDER BY category""")
         rows = cur.fetchall()
 
         # Add item to scroll view
         for row in rows:
-            print(row[0])
-            self.screen.ids.container.add_widget(
+            self.root.ids.main.ids.container.add_widget(
                 Factory.ListItemWithIcon(text=row[0])
             )
 
