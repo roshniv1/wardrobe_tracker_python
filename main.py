@@ -150,7 +150,7 @@ class ListItemWithIcon(OneLineAvatarIconListItem):
     def confirm_dialog(self):
         confirm_dialog = MDDialog(title="Delete Confirmation", text="Are you sure you want to delete '" + self.text + "'?",
                                   auto_dismiss=False, events_callback=self.remove_item, text_button_ok="Delete",
-                                  text_button_cancel="Cancel", size_hint=[0.5, 0.5])
+                                  text_button_cancel="Cancel", size_hint=[0.9, 0.5])
         confirm_dialog.open()
 
     # Remove item from widget and table
