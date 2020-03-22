@@ -17,52 +17,72 @@ import sqlite3 as sql
 kv = '''   
 #:import MDDropdownMenu kivymd.uix.menu.MDDropdownMenu
 
+
 <ListItemWithIcon@OneLineAvatarIconListItem>:
+
     IconRightWidget:
         icon: "minus"
         on_release:
             root.confirm_dialog()
    
+   
 WindowManager:
+
     MainWindow:
         id: main
         name: "Main"
+        
     AddWindow:
         id: add
     
+    
 <MainWindow>:
     name : "Main"
+    
     MDToolbar:
+        title: "Wardrobe Tracker"
         size_hint:1,0.1
         pos_hint:{'top':1}
-        title: 'Wardrobe'
         right_action_items: [['filter', lambda x: root.filter_category()], \
         ['plus', lambda x: root.manager.switch_to(root.manager.ids.add, direction = 'left')]]
+    
+    MDToolbar:
+        title: app.title
+        type: "bottom"
+        mode: "free-end"
+        icon: ""
+
     ScrollView:
         pos_hint:{'top':0.9}
-        size_hint:1,0.9
+        size_hint:1,0.79
         MDList:
             id: container     
             
+            
 <AddWindow>:
+
     on_pre_enter: wardrobe_item.text = ''
     name: "Add"
+    
     MDToolbar:
         size_hint:1,0.1
         pos_hint:{'top':1}
         left_action_items: [('arrow-left', lambda x: root.manager.switch_to(root.manager.ids.main, direction = 'right'))]
+        
     MDTextField:
         id: wardrobe_item
         pos_hint: {"top": 0.85, "center_x": 0.5}
         size_hint: 0.9,None
         helper_text: "Name your wardrobe item and select category"
         helper_text_mode: "persistent"
+        
     MDDropDownItem:
         id: wardrobe_category
         pos_hint: {"top":0.5, "center_x": 0.5}
         items: root.manager.category
         dropdown_bg: [1, 1, 1, 1]
-        dropdown_width_mult : 2  
+        dropdown_width_mult : 4  
+        
     Button:
         text: "Add"
         pos_hint: {"top":0.1}
@@ -73,6 +93,7 @@ WindowManager:
 
 class WindowManager(ScreenManager):
     ScreenManager.category = {"Tops": 0, "Bottoms": 1, "Dresses": 2, "Jackets": 3, "Accessories": 4}
+    ScreenManager.current_category = "All"
 
 
 class MainWindow(Screen):
@@ -102,10 +123,11 @@ class MainWindow(Screen):
         con = sql.connect("demo.db")
         cur = con.cursor()
 
-        if wardrobe_category == "All" :
+        if wardrobe_category == "All":
             cur.execute("""SELECT * FROM Wardrobe""")
         else:
             wardrobe_category = self.manager.category[wardrobe_category]
+            self.manager.current_category = wardrobe_category
             cur.execute("""SELECT * FROM Wardrobe WHERE category = (?)""", [wardrobe_category])
 
         rows = cur.fetchall()
@@ -115,6 +137,14 @@ class MainWindow(Screen):
             self.ids.container.add_widget(
                 Factory.ListItemWithIcon(text=row[0])
             )
+
+        if wardrobe_category == "All":
+            cur.execute("""SELECT COUNT(*) FROM Wardrobe""")
+        else:
+            cur.execute("""SELECT COUNT(*) FROM Wardrobe WHERE category = (?)""", [wardrobe_category])
+
+        app = MDApp.get_running_app()
+        app.title = "Item Count: " + str(cur.fetchall()[0][0])
 
         con.close()
 
@@ -131,14 +161,21 @@ class AddWindow(Screen):
         # If item does not already exist, add item
         if cur.fetchone() is None:
             self.manager.ids.main.ids.container.add_widget(Factory.ListItemWithIcon(text=wardrobe_item))
+            wardrobe_category = self.manager.category[wardrobe_category]
             cur.execute("""INSERT INTO Wardrobe (item, category) VALUES (?,?)""",
-                        (wardrobe_item, self.manager.category[wardrobe_category]))
+                        (wardrobe_item, wardrobe_category))
+
+            if wardrobe_category == self.manager.current_category or self.manager.current_category  == "All":
+                app = MDApp.get_running_app()
+                item_count = int(app.title.split(": ")[1]) + 1
+                app.title = "Item Count: " + str(item_count)
+
             self.manager.switch_to(self.parent.ids.main, direction='right')
 
         # If item exists, display error popup
         else:
             dup_dialog = MDDialog(title="Existing Item", text="This item already exists", text_button_ok="Go Back",
-                                  size_hint=[0.5, 0.5])
+                                  size_hint=[0.9, 0.5])
             dup_dialog.open()
 
         con.commit()
@@ -149,8 +186,9 @@ class ListItemWithIcon(OneLineAvatarIconListItem):
     # Popup to confirm delete
     def confirm_dialog(self):
         confirm_dialog = MDDialog(title="Delete Confirmation", text="Are you sure you want to delete '" + self.text + "'?",
-                                  auto_dismiss=False, events_callback=self.remove_item, text_button_ok="Delete",
+                                  events_callback=self.remove_item, text_button_ok="Delete",
                                   text_button_cancel="Cancel", size_hint=[0.9, 0.5])
+        # Removed auto_dismiss=False
         confirm_dialog.open()
 
     # Remove item from widget and table
@@ -167,13 +205,23 @@ class ListItemWithIcon(OneLineAvatarIconListItem):
 
 class MyMainApp(MDApp):
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        con = sql.connect("demo.db")
+        cur = con.cursor()
+        cur.execute("""CREATE TABLE IF NOT EXISTS Wardrobe(item TEXT NOT NULL UNIQUE, category TEXT)""")
+        cur.execute("""SELECT COUNT(*) FROM Wardrobe ORDER BY category""")
+        self.title = "Item Count: " + str(cur.fetchall()[0][0])
+        con.commit()
+        con.close()
+        self.screen = self.screen = Builder.load_string(kv)
+
     def build(self):
-        return Builder.load_string(kv)
+        return self.screen
 
     def on_start(self):
         con = sql.connect("demo.db")
         cur = con.cursor()
-        cur.execute("""CREATE TABLE IF NOT EXISTS Wardrobe(item TEXT NOT NULL UNIQUE, category TEXT)""")
         cur.execute("""SELECT * FROM Wardrobe ORDER BY category""")
         rows = cur.fetchall()
 
@@ -183,7 +231,6 @@ class MyMainApp(MDApp):
                 Factory.ListItemWithIcon(text=row[0])
             )
 
-        con.commit()
         con.close()
 
 
