@@ -160,15 +160,17 @@ class AddWindow(Screen):
 
         # If item does not already exist, add item
         if cur.fetchone() is None:
-            self.manager.ids.main.ids.container.add_widget(Factory.ListItemWithIcon(text=wardrobe_item))
             wardrobe_category = self.manager.category[wardrobe_category]
-            cur.execute("""INSERT INTO Wardrobe (item, category) VALUES (?,?)""",
-                        (wardrobe_item, wardrobe_category))
+            # Add to screen if filter matches input category
+            if wardrobe_category == self.manager.current_category or self.manager.current_category == "All":
+                self.manager.ids.main.ids.container.add_widget(Factory.ListItemWithIcon(text=wardrobe_item))
 
-            if wardrobe_category == self.manager.current_category or self.manager.current_category  == "All":
                 app = MDApp.get_running_app()
                 item_count = int(app.title.split(": ")[1]) + 1
                 app.title = "Item Count: " + str(item_count)
+
+            cur.execute("""INSERT INTO Wardrobe (item, category) VALUES (?,?)""",
+                        (wardrobe_item, wardrobe_category))
 
             self.manager.switch_to(self.parent.ids.main, direction='right')
 
