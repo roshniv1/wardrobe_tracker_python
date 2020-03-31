@@ -2,50 +2,43 @@
 This code creates a basic wardrobe tracker app using the Kivy package. Currently functionality includes the ability
 to add and remove items and updating the database. Planned upgrades include adding photos and item count.
 """
-
 from kivy.uix.screenmanager import Screen, ScreenManager
-from kivymd.uix.dialog import MDDialog
 from kivy.lang import Builder
-from kivymd.app import MDApp
 from kivy.factory import Factory
-from kivymd.uix.list import OneLineAvatarIconListItem
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.popup import Popup
+from kivymd.app import MDApp
+from kivymd.uix.dialog import MDDialog
+from kivymd.uix.imagelist import SmartTileWithLabel
 import sqlite3 as sql
+import time
 
-kv = '''   
-#:import MDDropdownMenu kivymd.uix.menu.MDDropdownMenu
-
-
-<ListItemWithIcon@OneLineAvatarIconListItem>:
-
-    IconRightWidget:
-        icon: "minus"
-        on_release:
-            root.confirm_dialog()
-   
-   
+kv = ('''
 WindowManager:
-
     MainWindow:
-        id: main
         name: "Main"
-        
+        id: main
     AddWindow:
+        name: "Add"
         id: add
-    
-    
+    ImageWindow:
+        name: "Image"
+        id: image
+    ConfirmWindow:
+        name: "Confirm"
+        id: confirm
+
 <MainWindow>:
-    name : "Main"
-    
+
     MDToolbar:
         title: "Wardrobe Tracker"
         size_hint:1,0.1
         pos_hint:{'top':1}
-        right_action_items: [['filter', lambda x: root.filter_category()], \
-        ['plus', lambda x: root.manager.switch_to(root.manager.ids.add, direction = 'left')]]
-    
+        right_action_items:
+            [('filter', lambda x: root.filter_category()),
+            ('plus', lambda x: root.manager.switch_to(root.manager.ids.add, direction = 'left'))]
+
     MDToolbar:
         title: app.title
         type: "bottom"
@@ -55,41 +48,94 @@ WindowManager:
     ScrollView:
         pos_hint:{'top':0.9}
         size_hint:1,0.79
-        MDList:
-            id: container     
-            
-            
-<AddWindow>:
+        do_scroll_x: False
 
-    on_pre_enter: wardrobe_item.text = ''
+        GridLayout:
+            id: container
+            cols: 2
+            mipmap: True
+            adaptive_height: False
+            row_default_height:
+                (self.width - self.cols*self.spacing[0])/self.cols
+            row_force_default: True
+            size_hint_y: None
+            height: self.minimum_height
+
+
+<AddWindow>:
+    #on_pre_enter: wardrobe_item.text = ''
     name: "Add"
-    
+
     MDToolbar:
         size_hint:1,0.1
         pos_hint:{'top':1}
-        left_action_items: [('arrow-left', lambda x: root.manager.switch_to(root.manager.ids.main, direction = 'right'))]
-        
+        left_action_items:
+            [('arrow-left', lambda x: root.manager.switch_to(root.manager.ids.main, direction = 'right'))]
+        right_action_items:
+            [('camera', lambda x: root.manager.switch_to(root.manager.ids.image, direction = 'left'))]
+
     MDTextField:
         id: wardrobe_item
         pos_hint: {"top": 0.85, "center_x": 0.5}
         size_hint: 0.9,None
         helper_text: "Name your wardrobe item and select category"
         helper_text_mode: "persistent"
-        
+
     MDDropDownItem:
         id: wardrobe_category
         pos_hint: {"top":0.5, "center_x": 0.5}
         items: root.manager.category
         dropdown_bg: [1, 1, 1, 1]
-        dropdown_width_mult : 4  
-        
+        dropdown_width_mult : 4
+
     Button:
         text: "Add"
         pos_hint: {"top":0.1}
         size_hint: 1,0.1
         on_press: root.add_item(wardrobe_item.text, wardrobe_category.current_item)
-'''
 
+<ImageWindow>:
+    on_pre_enter: cam_toolbar.remove_notch()
+    Camera:
+        id: camera
+        resolution: (640, 480)
+        play: True
+        allow_stretch: True
+        size_hint: 1, 1
+    MDToolbar:
+        size_hint:1,0.1
+        pos_hint:{'top':1}
+        left_action_items:
+            [('arrow-left', lambda x: root.manager.switch_to(root.manager.ids.add, direction = 'right'))]
+    MDToolbar:
+        id: cam_toolbar
+        icon: "circle"
+        type: "bottom"
+        on_md_bg_color: (0.4, 0.4, 0.4, 1)
+        left_action_items: [('arrow-left', lambda x: root.capture())]
+    MDFloatingActionButton:
+        elevation_normal: 8
+        icon: ''
+        pos_hint: {"top": 0.1, "center_x": 0.5}
+        on_press: root.capture()
+        md_bg_color: (0, 0, 0, 1)
+            
+<ConfirmWindow>:
+    on_pre_enter: display_image.source = root.manager.ids.image.image_id
+    Image:
+        id: display_image
+        pos_hint:{'top': 1}
+    MDToolbar:
+        size_hint:1,0.1
+        pos_hint:{'top':1}
+        left_action_items:
+            [('arrow-left', lambda x: root.manager.switch_to(root.manager.ids.image, direction = 'right'))]
+        right_action_items:
+            [('check', lambda x: root.manager.switch_to(root.manager.ids.add, direction = 'right'))]
+        
+''')
+
+# need to -1 count when removing items too
 
 class WindowManager(ScreenManager):
     ScreenManager.category = {"Tops": 0, "Bottoms": 1, "Dresses": 2, "Jackets": 3, "Accessories": 4}
@@ -161,18 +207,21 @@ class AddWindow(Screen):
         # If item does not already exist, add item
         if cur.fetchone() is None:
             wardrobe_category = self.manager.category[wardrobe_category]
+            image_source = self.manager.ids.image.image_id
             # Add to screen if filter matches input category
             if wardrobe_category == self.manager.current_category or self.manager.current_category == "All":
-                self.manager.ids.main.ids.container.add_widget(Factory.ListItemWithIcon(text=wardrobe_item))
+                self.manager.ids.main.ids.container.add_widget(SmartTileWithLabel(text="[size=24]"+wardrobe_item,
+                                                                                  source=image_source))
 
                 app = MDApp.get_running_app()
                 item_count = int(app.title.split(": ")[1]) + 1
                 app.title = "Item Count: " + str(item_count)
 
-            cur.execute("""INSERT INTO Wardrobe (item, category) VALUES (?,?)""",
-                        (wardrobe_item, wardrobe_category))
+            cur.execute("""INSERT INTO Wardrobe (item, image, category) VALUES (?,?,?)""",
+                        (wardrobe_item, image_source, wardrobe_category))
 
-            self.manager.switch_to(self.parent.ids.main, direction='right')
+            self.ids.wardrobe_item.text = ''
+            self.manager.switch_to(self.manager.ids.main, direction='right')
 
         # If item exists, display error popup
         else:
@@ -184,39 +233,41 @@ class AddWindow(Screen):
         con.close()
 
 
-class ListItemWithIcon(OneLineAvatarIconListItem):
-    # Popup to confirm delete
-    def confirm_dialog(self):
-        confirm_dialog = MDDialog(title="Delete Confirmation", text="Are you sure you want to delete '" + self.text + "'?",
-                                  events_callback=self.remove_item, text_button_ok="Delete",
-                                  text_button_cancel="Cancel", size_hint=[0.9, 0.5])
-        # Removed auto_dismiss=False
-        confirm_dialog.open()
+class ImageWindow(Screen):
 
-    # Remove item from widget and table
-    def remove_item(self, selection_text, popup_widget):
-        if selection_text == "Delete":
-            con = sql.connect("demo.db")
-            cur = con.cursor()
-            cur.execute("""DELETE FROM Wardrobe WHERE item = (?)""", [self.text])
-            con.commit()
-            con.close()
-            app = MDApp.get_running_app()
-            app.root.ids.main.ids.container.remove_widget(self)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.image_id = ''
+
+    def capture(self):
+        '''
+        Function to capture the images and give them the names
+        according to their captured time and date.
+        '''
+        camera = self.ids.camera
+        time_str = time.strftime("%Y%m%d_%H%M%S")
+        self.image_id = "IMG_{}.png".format(time_str)
+        camera.export_to_png(self.image_id)
+        self.manager.switch_to(self.manager.ids.confirm)
 
 
-class MyMainApp(MDApp):
+class ConfirmWindow(Screen):
+    pass
+
+
+class MDApp(MDApp):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         con = sql.connect("demo.db")
         cur = con.cursor()
-        cur.execute("""CREATE TABLE IF NOT EXISTS Wardrobe(item TEXT NOT NULL UNIQUE, category TEXT)""")
+        cur.execute("""CREATE TABLE IF NOT EXISTS Wardrobe(item TEXT NOT NULL UNIQUE, category TEXT, image TEXT,
+        desc TEXT)""")
         cur.execute("""SELECT COUNT(*) FROM Wardrobe ORDER BY category""")
         self.title = "Item Count: " + str(cur.fetchall()[0][0])
         con.commit()
         con.close()
-        self.screen = self.screen = Builder.load_string(kv)
+        self.screen = Builder.load_string(kv)
 
     def build(self):
         return self.screen
@@ -226,16 +277,15 @@ class MyMainApp(MDApp):
         cur = con.cursor()
         cur.execute("""SELECT * FROM Wardrobe ORDER BY category""")
         rows = cur.fetchall()
+        con.close()
 
         # Add item to scroll view
         for row in rows:
             self.root.ids.main.ids.container.add_widget(
-                Factory.ListItemWithIcon(text=row[0])
+                SmartTileWithLabel(text="[size=24]"+row[0], source=row[2])
             )
-
-        con.close()
 
 
 if __name__ == "__main__":
     # run app
-    MyMainApp().run()
+    MDApp().run()
