@@ -9,6 +9,7 @@ from kivy.utils import platform
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.popup import Popup
+from kivy.graphics.context_instructions import PushMatrix, PopMatrix
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.imagelist import SmartTileWithLabel
 import sqlite3 as sql
@@ -102,6 +103,13 @@ WindowManager:
         play: True
         allow_stretch: True
         size_hint: 1, 1
+        canvas.before:
+            PushMatrix
+            Rotate:
+                angle: -90
+                origin: self.center
+        canvas.after:
+            PopMatrix
     MDToolbar:
         size_hint:1,0.1
         pos_hint:{'top':1}
@@ -117,6 +125,8 @@ WindowManager:
         elevation_normal: 8
         icon: ''
         pos_hint: {"top": 0.1, "center_x": 0.5}
+        size_hint: None,None
+        size: 45,45
         on_press: root.capture()
         md_bg_color: (0, 0, 0, 1)
             
@@ -135,7 +145,8 @@ WindowManager:
         
 ''')
 
-# need to -1 count when removing items too
+# need to -1 count when removing items too. camera wrong way around (rot left 90 degrees), does not track image
+# (need android photo folder), no option to switch to front camera
 
 
 class WindowManager(ScreenManager):
@@ -253,6 +264,7 @@ class ImageWindow(Screen):
             return
         from android.permissions import request_permission, Permission
         request_permission(Permission.CAMERA)
+
 
     def capture(self):
         '''
