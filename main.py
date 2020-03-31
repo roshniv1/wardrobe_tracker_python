@@ -4,11 +4,11 @@ to add and remove items and updating the database. Planned upgrades include addi
 """
 from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy.lang import Builder
-from kivy.factory import Factory
+from kivymd.app import MDApp
+from kivy.utils import platform
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.popup import Popup
-from kivymd.app import MDApp
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.imagelist import SmartTileWithLabel
 import sqlite3 as sql
@@ -137,6 +137,7 @@ WindowManager:
 
 # need to -1 count when removing items too
 
+
 class WindowManager(ScreenManager):
     ScreenManager.category = {"Tops": 0, "Bottoms": 1, "Dresses": 2, "Jackets": 3, "Accessories": 4}
     ScreenManager.current_category = "All"
@@ -181,7 +182,7 @@ class MainWindow(Screen):
         # Add item to scroll view
         for row in rows:
             self.ids.container.add_widget(
-                Factory.ListItemWithIcon(text=row[0])
+                SmartTileWithLabel(text="[size=24]"+row[0], source=row[2])
             )
 
         if wardrobe_category == "All":
@@ -238,6 +239,20 @@ class ImageWindow(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.image_id = ''
+        self._request_android_permissions()
+
+    @staticmethod
+    def is_android():
+        return platform == 'android'
+
+    def _request_android_permissions(self):
+        """
+        Requests CAMERA permission on Android.
+        """
+        if not self.is_android():
+            return
+        from android.permissions import request_permission, Permission
+        request_permission(Permission.CAMERA)
 
     def capture(self):
         '''
