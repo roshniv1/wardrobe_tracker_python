@@ -126,7 +126,7 @@ WindowManager:
         icon: ''
         pos_hint: {"top": 0.1, "center_x": 0.5}
         size_hint: None,None
-        size: 45,45
+        size: 60,60
         on_press: root.capture()
         md_bg_color: (0, 0, 0, 1)
             
@@ -220,6 +220,7 @@ class AddWindow(Screen):
         if cur.fetchone() is None:
             wardrobe_category = self.manager.category[wardrobe_category]
             image_source = self.manager.ids.image.image_id
+            print("hi" + image_source)
             # Add to screen if filter matches input category
             if wardrobe_category == self.manager.current_category or self.manager.current_category == "All":
                 self.manager.ids.main.ids.container.add_widget(SmartTileWithLabel(text="[size=24]"+wardrobe_item,
@@ -263,7 +264,7 @@ class ImageWindow(Screen):
         if not self.is_android():
             return
         from android.permissions import request_permission, Permission
-        request_permission(Permission.CAMERA)
+        request_permission([Permission.CAMERA, Permission.WRITE_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE])
 
 
     def capture(self):
@@ -274,8 +275,14 @@ class ImageWindow(Screen):
         camera = self.ids.camera
         time_str = time.strftime("%Y%m%d_%H%M%S")
         self.image_id = "IMG_{}.png".format(time_str)
+
+        # if self.is_android():
+        #     from android.storage import primary_external_storage_path
+        #     self.image_id = primary_external_storage_path + self.image_id
+
+        print(self.image_id)
         camera.export_to_png(self.image_id)
-        self.manager.switch_to(self.manager.ids.confirm)
+        self.manager.switch_to(self.manager.ids.confirm, direction = 'left')
 
 
 class ConfirmWindow(Screen):
