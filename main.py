@@ -9,11 +9,11 @@ from kivy.utils import platform
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.popup import Popup
-from kivy.graphics.context_instructions import PushMatrix, PopMatrix
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.imagelist import SmartTileWithLabel
 import sqlite3 as sql
 import time
+import os
 
 kv = ('''
 WindowManager:
@@ -280,6 +280,8 @@ class ImageWindow(Screen):
         #     from android.storage import primary_external_storage_path
         #     self.image_id = primary_external_storage_path + self.image_id
 
+        root_dir = os.path.dirname(os.path.abspath(__file__))
+        self.image_id = os.path.join(root_dir, self.image_id)
         print(self.image_id)
         camera.export_to_png(self.image_id)
         self.manager.switch_to(self.manager.ids.confirm, direction = 'left')
