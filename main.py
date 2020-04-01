@@ -264,7 +264,7 @@ class ImageWindow(Screen):
         if not self.is_android():
             return
         from android.permissions import request_permission, Permission
-        request_permission([Permission.CAMERA, Permission.WRITE_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE])
+        request_permission(Permission.CAMERA)
 
 
     def capture(self):
