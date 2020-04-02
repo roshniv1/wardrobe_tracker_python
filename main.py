@@ -111,7 +111,7 @@ WindowManager:
         canvas.after:
             PopMatrix
         allow_stretch: True
-        resolution: (640, 80)
+        resolution: (640, 480)
         play: True
     MDToolbar:
         size_hint:1,0.1
