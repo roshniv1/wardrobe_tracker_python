@@ -9,6 +9,7 @@ from kivy.utils import platform
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.popup import Popup
+from kivy.uix.image import Image
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.imagelist import SmartTileWithLabel
 import sqlite3 as sql
@@ -56,7 +57,8 @@ WindowManager:
             id: container
             cols: 2
             mipmap: True
-            adaptive_height: False
+            adaptive_height: True
+            adaptive_width: True
             row_default_height:
                 (self.width - self.cols*self.spacing[0])/self.cols
             row_force_default: True
@@ -96,7 +98,13 @@ WindowManager:
         on_press: root.add_item(wardrobe_item.text, wardrobe_category.current_item)
 
 <ImageWindow>:
-    XCamera:
+    on_pre_enter: cam_toolbar.remove_notch()
+    Camera:
+        id: camera
+        keep_ratio: True
+        center: self.size and root.center
+        size:
+            (root.height, root.width)
         canvas.before:
             PushMatrix
             Rotate:
@@ -104,11 +112,25 @@ WindowManager:
                 origin: self.center
         canvas.after:
             PopMatrix
+        allow_stretch: True
+        resolution: (640, 480)
+        play: True
     MDToolbar:
         size_hint:1,0.1
         pos_hint:{'top':1}
         left_action_items:
             [('arrow-left', lambda x: root.manager.switch_to(root.manager.ids.add, direction = 'right'))]
+    MDToolbar:
+        id: cam_toolbar
+        icon: "circle"
+        type: "bottom"
+        on_md_bg_color: (0.4, 0.4, 0.4, 1)
+    MDFloatingActionButton:
+        elevation_normal: 8
+        icon: ''
+        pos_hint: {"top": 0.05, "center_x": 0.5}
+        on_press: root.capture()
+        md_bg_color: (0, 0, 0, 1)
             
 <ConfirmWindow>:
     on_pre_enter: display_image.source = root.manager.ids.image.image_id
@@ -173,7 +195,7 @@ class MainWindow(Screen):
         # Add item to scroll view
         for row in rows:
             self.ids.container.add_widget(
-                SmartTileWithLabel(text="[size=32]"+row[0], source=row[2])
+                SmartTileWithLabel(source=row[2])
             )
 
         if wardrobe_category == "All":
@@ -200,11 +222,9 @@ class AddWindow(Screen):
         if cur.fetchone() is None:
             wardrobe_category = self.manager.category[wardrobe_category]
             image_source = self.manager.ids.image.image_id
-            print("hi" + image_source)
             # Add to screen if filter matches input category
             if wardrobe_category == self.manager.current_category or self.manager.current_category == "All":
-                self.manager.ids.main.ids.container.add_widget(SmartTileWithLabel(text="[size=32]"+wardrobe_item,
-                                                                                  source=image_source))
+                self.manager.ids.main.ids.container.add_widget(SmartTileWithLabel(source=image_source))
 
                 app = MDApp.get_running_app()
                 item_count = int(app.title.split(": ")[1]) + 1
@@ -254,11 +274,10 @@ class ImageWindow(Screen):
         '''
         camera = self.ids.camera
         time_str = time.strftime("%Y%m%d_%H%M%S")
-        self.image_id = "images\IMG_{}.png".format(time_str)
+        self.image_id = "IMG_{}.png".format(time_str)
 
         root_dir = os.path.dirname(os.path.abspath(__file__))
         self.image_id = os.path.join(root_dir, self.image_id)
-        print(self.image_id)
         camera.export_to_png(self.image_id)
         print(self.image_id)
         self.manager.switch_to(self.manager.ids.confirm, direction = 'left')
@@ -295,7 +314,7 @@ class MDApp(MDApp):
         # Add item to scroll view
         for row in rows:
             self.root.ids.main.ids.container.add_widget(
-                SmartTileWithLabel(text="[size=32]"+row[0], source=row[2])
+                Image(source=row[2])
             )
 
 
