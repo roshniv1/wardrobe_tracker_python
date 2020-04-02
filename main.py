@@ -97,22 +97,22 @@ WindowManager:
 
 <ImageWindow>:
     on_pre_enter: cam_toolbar.remove_notch()
-    BoxLayout:
-        id: box
-        size_hint: 1,1
-        Camera:
-            id: camera
-            canvas.before:
-                PushMatrix
-                Rotate:
-                    angle: -90
-                    origin: self.center
-            canvas.after:
-                PopMatrix
-            allow_stretch: True
-            keep_ratio: False
-            resolution: (640, 480)
-            play: True
+    Camera:
+        id: camera
+        keep_ratio: True
+        center: self.size and root.center
+        size:
+            (root.height, root.width)
+        canvas.before:
+            PushMatrix
+            Rotate:
+                angle: -90
+                origin: self.center
+        canvas.after:
+            PopMatrix
+        allow_stretch: True
+        resolution: (640, 80)
+        play: True
     MDToolbar:
         size_hint:1,0.1
         pos_hint:{'top':1}
@@ -123,7 +123,6 @@ WindowManager:
         icon: "circle"
         type: "bottom"
         on_md_bg_color: (0.4, 0.4, 0.4, 1)
-        left_action_items: [('arrow-left', lambda x: root.capture())]
     MDFloatingActionButton:
         elevation_normal: 8
         icon: ''
@@ -316,7 +315,7 @@ class MDApp(MDApp):
         # Add item to scroll view
         for row in rows:
             self.root.ids.main.ids.container.add_widget(
-                SmartTileWithLabel(text="[size=24]"+row[0], source=row[2])
+                SmartTileWithLabel(text="[size=32]"+row[0], source=row[2])
             )
 
 
