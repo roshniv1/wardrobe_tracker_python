@@ -102,7 +102,7 @@ WindowManager:
         size_hint: None,None
         center: self.size and root.center
         #size: root.height, root.width
-        size: 800,800
+        size: 1200,1000
         canvas.before:
             PushMatrix
             Rotate:
@@ -130,7 +130,8 @@ WindowManager:
         elevation_normal: 8
         icon: ''
         pos_hint: {"top": 0.1, "center_x": 0.5}
-        size_hint: 0.1,0.1
+        size_hint: None,None
+        size: 100,100
         on_press: root.capture()
         md_bg_color: (0, 0, 0, 1)
             
