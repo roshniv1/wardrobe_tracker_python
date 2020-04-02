@@ -16,6 +16,7 @@ import time
 import os
 
 kv = ('''
+#:import xcamera kivy_garden.xcamera.xcamera
 WindowManager:
     MainWindow:
         name: "Main"
@@ -64,7 +65,6 @@ WindowManager:
 
 
 <AddWindow>:
-    #on_pre_enter: wardrobe_item.text = ''
     name: "Add"
 
     MDToolbar:
@@ -96,39 +96,12 @@ WindowManager:
         on_press: root.add_item(wardrobe_item.text, wardrobe_category.current_item)
 
 <ImageWindow>:
-    on_pre_enter: cam_toolbar.remove_notch()
-    Camera:
-        id: camera
-        keep_ratio: True
-        center: self.size and root.center
-        size:
-            (root.height, root.width)
-        canvas.before:
-            PushMatrix
-            Rotate:
-                angle: -90
-                origin: self.center
-        canvas.after:
-            PopMatrix
-        allow_stretch: True
-        resolution: (640, 480)
-        play: True
+    XCamera:
     MDToolbar:
         size_hint:1,0.1
         pos_hint:{'top':1}
         left_action_items:
             [('arrow-left', lambda x: root.manager.switch_to(root.manager.ids.add, direction = 'right'))]
-    MDToolbar:
-        id: cam_toolbar
-        icon: "circle"
-        type: "bottom"
-        on_md_bg_color: (0.4, 0.4, 0.4, 1)
-    MDFloatingActionButton:
-        elevation_normal: 8
-        icon: ''
-        pos_hint: {"top": 0.1, "center_x": 0.5}
-        on_press: root.capture()
-        md_bg_color: (0, 0, 0, 1)
             
 <ConfirmWindow>:
     on_pre_enter: display_image.source = root.manager.ids.image.image_id
