@@ -99,7 +99,10 @@ WindowManager:
     
     Camera:
         id: camera
-        keep_ratio: True
+        size_hint: None,None
+        center: self.size and root.center
+        #size: root.height, root.width
+        size: 800,800
         canvas.before:
             PushMatrix
             Rotate:
