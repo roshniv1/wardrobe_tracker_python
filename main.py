@@ -97,6 +97,13 @@ WindowManager:
 
 <ImageWindow>:
     XCamera:
+        canvas.before:
+            PushMatrix
+            Rotate:
+                angle: -90
+                origin: self.center
+        canvas.after:
+            PopMatrix
     MDToolbar:
         size_hint:1,0.1
         pos_hint:{'top':1}
