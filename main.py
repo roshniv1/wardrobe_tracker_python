@@ -97,19 +97,22 @@ WindowManager:
 
 <ImageWindow>:
     on_pre_enter: cam_toolbar.remove_notch()
-    Camera:
-        id: camera
-        resolution: (640, 480)
-        play: True
-        allow_stretch: True
-        size_hint: 1, 1
-        canvas.before:
-            PushMatrix
-            Rotate:
-                angle: -90
-                origin: self.center
-        canvas.after:
-            PopMatrix
+    BoxLayout:
+        id: box
+        size_hint: 1,1
+        Camera:
+            id: camera
+            canvas.before:
+                PushMatrix
+                Rotate:
+                    angle: -90
+                    origin: self.center
+            canvas.after:
+                PopMatrix
+            allow_stretch: True
+            keep_ratio: False
+            resolution: (640, 480)
+            play: True
     MDToolbar:
         size_hint:1,0.1
         pos_hint:{'top':1}
@@ -125,8 +128,6 @@ WindowManager:
         elevation_normal: 8
         icon: ''
         pos_hint: {"top": 0.1, "center_x": 0.5}
-        size_hint: None,None
-        size: 60,60
         on_press: root.capture()
         md_bg_color: (0, 0, 0, 1)
             
@@ -193,7 +194,7 @@ class MainWindow(Screen):
         # Add item to scroll view
         for row in rows:
             self.ids.container.add_widget(
-                SmartTileWithLabel(text="[size=24]"+row[0], source=row[2])
+                SmartTileWithLabel(text="[size=32]"+row[0], source=row[2])
             )
 
         if wardrobe_category == "All":
@@ -223,7 +224,7 @@ class AddWindow(Screen):
             print("hi" + image_source)
             # Add to screen if filter matches input category
             if wardrobe_category == self.manager.current_category or self.manager.current_category == "All":
-                self.manager.ids.main.ids.container.add_widget(SmartTileWithLabel(text="[size=24]"+wardrobe_item,
+                self.manager.ids.main.ids.container.add_widget(SmartTileWithLabel(text="[size=32]"+wardrobe_item,
                                                                                   source=image_source))
 
                 app = MDApp.get_running_app()
@@ -274,16 +275,13 @@ class ImageWindow(Screen):
         '''
         camera = self.ids.camera
         time_str = time.strftime("%Y%m%d_%H%M%S")
-        self.image_id = "IMG_{}.png".format(time_str)
-
-        # if self.is_android():
-        #     from android.storage import primary_external_storage_path
-        #     self.image_id = primary_external_storage_path + self.image_id
+        self.image_id = "images\IMG_{}.png".format(time_str)
 
         root_dir = os.path.dirname(os.path.abspath(__file__))
         self.image_id = os.path.join(root_dir, self.image_id)
         print(self.image_id)
         camera.export_to_png(self.image_id)
+        print(self.image_id)
         self.manager.switch_to(self.manager.ids.confirm, direction = 'left')
 
 
