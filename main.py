@@ -16,7 +16,6 @@ import time
 import os
 
 kv = ('''
-#:import xcamera kivy_garden.xcamera.xcamera
 WindowManager:
     MainWindow:
         name: "Main"
@@ -280,7 +279,6 @@ class ImageWindow(Screen):
         root_dir = os.path.dirname(os.path.abspath(__file__))
         self.image_id = os.path.join(root_dir, self.image_id)
         camera.export_to_png(self.image_id)
-        print(self.image_id)
         self.manager.switch_to(self.manager.ids.confirm, direction = 'left')
 
 
@@ -306,6 +304,7 @@ class MDApp(MDApp):
         return self.screen
 
     def on_start(self):
+        print("on_start")
         con = sql.connect("demo.db")
         cur = con.cursor()
         cur.execute("""SELECT * FROM Wardrobe ORDER BY category""")
@@ -318,8 +317,13 @@ class MDApp(MDApp):
                 Image(source=row[2])
             )
 
+    def on_pause(self):
+        self.root.ids.image.ids.camera.play = False
+        print("on_pause")
+
     def on_resume(self):
         self.root.ids.image.ids.camera.play = True
+        print("on_resume")
 
 
 if __name__ == "__main__":
