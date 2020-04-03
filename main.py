@@ -96,7 +96,6 @@ WindowManager:
 
 <ImageWindow>:
     on_pre_enter: cam_toolbar.remove_notch()
-    on_enter: camera.play = True
     Camera:
         id: camera
         size_hint: None,None
@@ -111,7 +110,7 @@ WindowManager:
             PopMatrix
         allow_stretch: True
         resolution: (640, 480)
-        #play: True
+        play: True
         
     MDToolbar:
         size_hint:1,0.1
@@ -130,7 +129,7 @@ WindowManager:
         icon: ''
         pos_hint: {"top": 0.1, "center_x": 0.5}
         size_hint: None,None
-        size: self.size
+        size: dp(50),dp(50)
         on_press: root.capture()
         md_bg_color: (0, 0, 0, 1)
             
@@ -318,7 +317,9 @@ class MDApp(MDApp):
             self.root.ids.main.ids.container.add_widget(
                 Image(source=row[2])
             )
-        #print(self.root.ids.main.ids.container.size, self.root.ids.main.ids.container.row_default_height, self.root.ids.main.ids.container.width)
+
+    def on_resume(self):
+        self.root.ids.image.ids.camera.play = True
 
 
 if __name__ == "__main__":
