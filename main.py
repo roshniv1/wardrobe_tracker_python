@@ -54,6 +54,7 @@ WindowManager:
         GridLayout:
             id: container
             cols: 2
+            spacing: 0,50
             mipmap: True
             row_default_height:
                 (self.width - self.cols*self.spacing[0])/self.cols
@@ -99,7 +100,7 @@ WindowManager:
         id: camera
         size_hint: None,None
         center: self.size and root.center
-        size: 1200,1000
+        size: dp(600),dp(600)
         canvas.before:
             PushMatrix
             Rotate:
@@ -126,7 +127,7 @@ WindowManager:
     MDFloatingActionButton:
         elevation_normal: 8
         icon: ''
-        pos_hint: {"top": 0.1, "center_x": 0.5}
+        pos_hint: {"top": 0.09, "center_x": 0.5}
         size_hint: None,None
         size: dp(50),dp(50)
         on_press: root.capture()
@@ -266,7 +267,6 @@ class ImageWindow(Screen):
         from android.permissions import request_permission, Permission
         request_permission(Permission.CAMERA)
 
-
     def capture(self):
         '''
         Function to capture the images and give them the names
@@ -320,8 +320,11 @@ class MDApp(MDApp):
     def on_pause(self):
         self.root.ids.image.ids.camera.play = False
         print("on_pause")
+        return True
 
     def on_resume(self):
+        from android.permissions import request_permission, Permission
+        request_permission(Permission.CAMERA)
         self.root.ids.image.ids.camera.play = True
         print("on_resume")
 
