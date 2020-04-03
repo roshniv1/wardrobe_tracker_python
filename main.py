@@ -100,7 +100,7 @@ WindowManager:
         id: camera
         size_hint: None,None
         center: self.size and root.center
-        size: dp(600),dp(600)
+        size: dp(500),dp(500)
         canvas.before:
             PushMatrix
             Rotate:
@@ -323,8 +323,6 @@ class MDApp(MDApp):
         return True
 
     def on_resume(self):
-        from android.permissions import request_permission, Permission
-        request_permission(Permission.CAMERA)
         self.root.ids.image.ids.camera.play = True
         print("on_resume")
 
