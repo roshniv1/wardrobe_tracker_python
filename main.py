@@ -320,6 +320,7 @@ class MDApp(MDApp):
     def on_pause(self):
         self.root.ids.image.ids.camera.play = False
         print("on_pause")
+        return True
 
     def on_resume(self):
         self.root.ids.image.ids.camera.play = True
