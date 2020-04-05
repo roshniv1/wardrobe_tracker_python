@@ -11,6 +11,8 @@ from kivy.uix.button import Button
 from kivy.uix.popup import Popup
 from kivy.uix.image import Image
 from kivymd.uix.dialog import MDDialog
+from kivy.uix.camera import Camera
+from kivy.clock import Clock
 import sqlite3 as sql
 import time
 import os
@@ -96,10 +98,11 @@ WindowManager:
 
 <ImageWindow>:
     on_pre_enter: cam_toolbar.remove_notch()
-    camera: camera.__self__
-    #on_pre_enter: camera.play = True
+    on_pre_enter: camera.resolution = (640, 480)
+    __safe_id: [camera.__self__]
     Camera:
         id: camera
+        resolution: (640, 480)
         size_hint: None,None
         center: self.size and root.center
         size: dp(500),dp(500)
@@ -111,7 +114,6 @@ WindowManager:
         canvas.after:
             PopMatrix
         allow_stretch: True
-        resolution: (640, 480)
         play: True
         
     MDToolbar:
@@ -157,13 +159,12 @@ WindowManager:
 class WindowManager(ScreenManager):
     ScreenManager.category = {"Tops": 0, "Bottoms": 1, "Dresses": 2, "Jackets": 3, "Accessories": 4}
     ScreenManager.current_category = "All"
-    print("SM")
 
 
 class MainWindow(Screen):
     # Popup to filter item category
     def filter_category(self):
-        self.manager.ids.image.ids.camera.play = False
+
         # List of categories to display as buttons
         wardrobe_category = self.manager.category
 
@@ -182,6 +183,7 @@ class MainWindow(Screen):
         popup.open()
 
     def filter_view(self, wardrobe_category):
+        #self.manager.ids.image.ids.camera.play = False
         # Filter items, clear widgets and select by category
         self.ids.container.clear_widgets()
 
@@ -246,6 +248,9 @@ class AddWindow(Screen):
             dup_dialog = MDDialog(title="Existing Item", text="This item already exists", text_button_ok="Go Back",
                                   size_hint=[0.9, 0.5])
             dup_dialog.open()
+            #print(self.manager.ids.image.ids.camera)
+            #cam = Camera(play=True, resolution=(640, 480))
+            #self.manager.ids.image.ids.camera.play = True
 
         con.commit()
         con.close()
@@ -257,7 +262,6 @@ class ImageWindow(Screen):
         super().__init__(**kwargs)
         self.image_id = ''
         self._request_android_permissions()
-        print("image_Window")
 
     @staticmethod
     def is_android():
@@ -294,6 +298,7 @@ class ConfirmWindow(Screen):
 class MDApp(MDApp):
 
     def __init__(self, **kwargs):
+        print("init")
         super().__init__(**kwargs)
         con = sql.connect("demo.db")
         cur = con.cursor()
@@ -306,6 +311,7 @@ class MDApp(MDApp):
         self.screen = Builder.load_string(kv)
 
     def build(self):
+        print("build")
         return self.screen
 
     def on_start(self):
@@ -324,13 +330,16 @@ class MDApp(MDApp):
 
     def on_pause(self):
         self.root.ids.image.ids.camera.play = False
-        print("on_pause")
+        print(self.root.ids.image.ids.camera + "on_pause")
         return True
 
     def on_resume(self):
-        self.root.ids.image.ids.camera.play = True
     # add permissions here?
-        print("on_resume")
+        print(self.root.ids.image.ids.camera + "on_resume")
+        self.root.ids.image.ids.camera.play = True
+
+    def on_stop(self):
+        print("on_stop")
 
 
 if __name__ == "__main__":
