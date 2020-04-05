@@ -96,6 +96,8 @@ WindowManager:
 
 <ImageWindow>:
     on_pre_enter: cam_toolbar.remove_notch()
+    camera: camera.__self__
+    on_pre_enter: camera.play = True
     Camera:
         id: camera
         size_hint: None,None
@@ -127,7 +129,7 @@ WindowManager:
     MDFloatingActionButton:
         elevation_normal: 8
         icon: ''
-        pos_hint: {"top": 0.09, "center_x": 0.5}
+        pos_hint: {"top": 0.08, "center_x": 0.5}
         size_hint: None,None
         size: dp(50),dp(50)
         on_press: root.capture()
@@ -155,11 +157,13 @@ WindowManager:
 class WindowManager(ScreenManager):
     ScreenManager.category = {"Tops": 0, "Bottoms": 1, "Dresses": 2, "Jackets": 3, "Accessories": 4}
     ScreenManager.current_category = "All"
+    print("SM")
 
 
 class MainWindow(Screen):
     # Popup to filter item category
     def filter_category(self):
+        self.manager.ids.image.ids.camera.play = False
         # List of categories to display as buttons
         wardrobe_category = self.manager.category
 
@@ -253,6 +257,7 @@ class ImageWindow(Screen):
         super().__init__(**kwargs)
         self.image_id = ''
         self._request_android_permissions()
+        print("image_Window")
 
     @staticmethod
     def is_android():
@@ -323,8 +328,9 @@ class MDApp(MDApp):
         return True
 
     def on_resume(self):
-        self.root.ids.image.ids.camera.play = True
-        print("on_resume")
+    #     self.root.ids.image.ids.camera.play = True
+    # add permissions here?
+     print("on_resume")
 
 
 if __name__ == "__main__":
