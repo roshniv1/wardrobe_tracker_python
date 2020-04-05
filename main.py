@@ -330,12 +330,14 @@ class MDApp(MDApp):
 
     def on_pause(self):
         self.root.ids.image.ids.camera.play = False
-        print(self.root.ids.image.ids.camera + "on_pause")
+        print("on_pause")
+        print(self.root.ids.image.ids.camera)
         return True
 
     def on_resume(self):
     # add permissions here?
-        print(self.root.ids.image.ids.camera + "on_resume")
+        print("on_resume")
+        print(self.root.ids.image.ids.camera)
         self.root.ids.image.ids.camera.play = True
 
     def on_stop(self):
