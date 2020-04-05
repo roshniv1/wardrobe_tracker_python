@@ -97,7 +97,7 @@ WindowManager:
 <ImageWindow>:
     on_pre_enter: cam_toolbar.remove_notch()
     camera: camera.__self__
-    on_pre_enter: camera.play = True
+    #on_pre_enter: camera.play = True
     Camera:
         id: camera
         size_hint: None,None
@@ -328,9 +328,9 @@ class MDApp(MDApp):
         return True
 
     def on_resume(self):
-    #     self.root.ids.image.ids.camera.play = True
+        self.root.ids.image.ids.camera.play = True
     # add permissions here?
-     print("on_resume")
+        print("on_resume")
 
 
 if __name__ == "__main__":
