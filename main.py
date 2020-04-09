@@ -2,6 +2,7 @@
 This code creates a basic wardrobe tracker app using the Kivy package. Currently functionality includes the ability
 to add and remove items and updating the database. Planned upgrades include adding photos and item count.
 """
+from kivy.properties import ObjectProperty
 from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy.lang import Builder
 from kivymd.app import MDApp
@@ -31,9 +32,7 @@ WindowManager:
     ConfirmWindow:
         name: "Confirm"
         id: confirm
-
 <MainWindow>:
-
     MDToolbar:
         title: "Wardrobe Tracker"
         size_hint:1,0.1
@@ -41,18 +40,15 @@ WindowManager:
         right_action_items:
             [('filter', lambda x: root.filter_category()),
             ('plus', lambda x: root.manager.switch_to(root.manager.ids.add, direction = 'left'))]
-
     MDToolbar:
         title: app.title
         type: "bottom"
         mode: "free-end"
         icon: ""
-
     ScrollView:
         pos_hint:{'top':0.9}
         size_hint:1,0.79
         do_scroll_x: False
-
         GridLayout:
             id: container
             cols: 2
@@ -63,11 +59,8 @@ WindowManager:
             row_force_default: True
             size_hint_y: None
             height: self.minimum_height
-
-
 <AddWindow>:
     name: "Add"
-
     MDToolbar:
         size_hint:1,0.1
         pos_hint:{'top':1}
@@ -75,31 +68,26 @@ WindowManager:
             [('arrow-left', lambda x: root.manager.switch_to(root.manager.ids.main, direction = 'right'))]
         right_action_items:
             [('camera', lambda x: root.manager.switch_to(root.manager.ids.image, direction = 'left'))]
-
     MDTextField:
         id: wardrobe_item
         pos_hint: {"top": 0.85, "center_x": 0.5}
         size_hint: 0.9,None
         helper_text: "Name your wardrobe item and select category"
         helper_text_mode: "persistent"
-
     MDDropDownItem:
         id: wardrobe_category
         pos_hint: {"top":0.5, "center_x": 0.5}
         items: root.manager.category
         dropdown_bg: [1, 1, 1, 1]
         dropdown_width_mult : 4
-
     Button:
         text: "Add"
         pos_hint: {"top":0.1}
         size_hint: 1,0.1
         on_press: root.add_item(wardrobe_item.text, wardrobe_category.current_item)
-
 <ImageWindow>:
     on_pre_enter: cam_toolbar.remove_notch()
-    on_pre_enter: camera.resolution = (640, 480)
-    __safe_id: [camera.__self__]
+    camera: camera.__self__
     Camera:
         id: camera
         resolution: (640, 480)
@@ -164,7 +152,8 @@ class WindowManager(ScreenManager):
 class MainWindow(Screen):
     # Popup to filter item category
     def filter_category(self):
-
+        print(self.manager.ids.image.ids.camera)
+        self.manager.ids.image.ids.camera.play = False
         # List of categories to display as buttons
         wardrobe_category = self.manager.category
 
@@ -183,7 +172,6 @@ class MainWindow(Screen):
         popup.open()
 
     def filter_view(self, wardrobe_category):
-        #self.manager.ids.image.ids.camera.play = False
         # Filter items, clear widgets and select by category
         self.ids.container.clear_widgets()
 
@@ -248,9 +236,9 @@ class AddWindow(Screen):
             dup_dialog = MDDialog(title="Existing Item", text="This item already exists", text_button_ok="Go Back",
                                   size_hint=[0.9, 0.5])
             dup_dialog.open()
-            #print(self.manager.ids.image.ids.camera)
+            print(self.manager.ids.image.ids.camera)
             #cam = Camera(play=True, resolution=(640, 480))
-            #self.manager.ids.image.ids.camera.play = True
+            self.manager.ids.image.ids.camera.play = True
 
         con.commit()
         con.close()
@@ -296,6 +284,7 @@ class ConfirmWindow(Screen):
 
 
 class MDApp(MDApp):
+    camera = ObjectProperty(None)
 
     def __init__(self, **kwargs):
         print("init")
@@ -329,16 +318,14 @@ class MDApp(MDApp):
             )
 
     def on_pause(self):
-        self.root.ids.image.ids.camera.play = False
+        self.camera.play = False
         print("on_pause")
-        print(self.root.ids.image.ids.camera)
+        print(self.camera, self.camera.play)
         return True
 
     def on_resume(self):
-    # add permissions here?
-        print("on_resume")
-        print(self.root.ids.image.ids.camera)
-        self.root.ids.image.ids.camera.play = True
+        self.camera.play = True
+        print(self.camera, self.camera.play)
 
     def on_stop(self):
         print("on_stop")
