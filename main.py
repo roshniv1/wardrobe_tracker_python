@@ -87,7 +87,7 @@ WindowManager:
         on_press: root.add_item(wardrobe_item.text, wardrobe_category.current_item)
 <ImageWindow>:
     on_pre_enter: cam_toolbar.remove_notch()
-    camera: camera.__self__
+    camera: camera
     Camera:
         id: camera
         resolution: (640, 480)
@@ -238,13 +238,14 @@ class AddWindow(Screen):
             dup_dialog.open()
             print(self.manager.ids.image.ids.camera)
             #cam = Camera(play=True, resolution=(640, 480))
-            self.manager.ids.image.ids.camera.play = True
+            self.manager.ids.image.camera.play = True
 
         con.commit()
         con.close()
 
 
 class ImageWindow(Screen):
+    camera = ObjectProperty(None)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -263,6 +264,9 @@ class ImageWindow(Screen):
             return
         from android.permissions import request_permission, Permission
         request_permission(Permission.CAMERA)
+
+    def on_pre_enter(self, *args):
+        self.camera.play = True
 
     def capture(self):
         '''
@@ -284,7 +288,6 @@ class ConfirmWindow(Screen):
 
 
 class MDApp(MDApp):
-    camera = ObjectProperty(None)
 
     def __init__(self, **kwargs):
         print("init")
@@ -318,14 +321,10 @@ class MDApp(MDApp):
             )
 
     def on_pause(self):
-        self.camera.play = False
-        print("on_pause")
-        print(self.camera, self.camera.play)
         return True
 
     def on_resume(self):
-        self.camera.play = True
-        print(self.camera, self.camera.play)
+        pass
 
     def on_stop(self):
         print("on_stop")
