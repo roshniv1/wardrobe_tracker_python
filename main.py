@@ -292,9 +292,9 @@ class ImageWindow(Screen):
         camera.export_to_png(self.image_id)
         self.manager.switch_to(self.manager.ids.confirm, direction = 'left')
 
-    def on_pre_enter(self, *args):
-        self.camera.play = True
-        #self.camera.index = 0
+    # def on_pre_enter(self, *args):
+    #     self.camera.play = True
+    #     self.camera.index = 0
 
 
 class AppCamera(Camera):
@@ -337,11 +337,11 @@ class MDApp(MDApp):
             self.root.ids.main.ids.container.add_widget(
                 Image(source=row[2])
             )
-
-    def on_pause(self):
-        self.root.ids.image.ids.camera.play = False
-        #self.root.ids.image.camera.index = -1
-        return True
+    #
+    # def on_pause(self):
+    #     self.root.ids.image.ids.camera.play = False
+    #     self.root.ids.image.camera.index = -1
+    #     return True
 
     def on_stop(self):
         print("on_stop")
