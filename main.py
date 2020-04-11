@@ -166,7 +166,7 @@ class MainWindow(Screen):
 
         self.manager.ids.image.camera.play = False
         self.manager.ids.image.camera.index = -1
-        self.manager.ids.image.remove_widget(self.manager.ids.image.ids.camera)
+        #self.manager.ids.image.remove_widget(self.manager.ids.image.ids.camera)
 
         # List of categories to display as buttons
         wardrobe_category = self.manager.category
@@ -251,9 +251,11 @@ class AddWindow(Screen):
                                   size_hint=[0.9, 0.5])
             dup_dialog.open()
 
-            cam = AppCamera(resolution = (640, 480))
-            cam.center = (cam.size and self.manager.ids.image.center)
-            self.manager.ids.image.add_widget(cam)
+            # cam = AppCamera()
+            # cam.center = (cam.size and self.manager.ids.image.center)
+            # self.manager.ids.image.add_widget(cam)
+            self.manager.ids.image.ids.camera.play = True
+            self.manager.ids.image.ids.camera.index = 0
 
         con.commit()
         con.close()
@@ -340,14 +342,16 @@ class MDApp(MDApp):
         print("on pause")
         self.root.ids.image.ids.camera.play = False
         self.root.ids.image.camera.index = -1
-        self.root.ids.image.remove_widget(self.root.ids.image.ids.camera)
+        #self.root.ids.image.remove_widget(self.root.ids.image.ids.camera)
         return True
 
     def on_resume(self):
         print("on resume")
-        cam = AppCamera(index = 0)
-        cam.center = (cam.size and self.root.ids.image.center)
-        self.root.ids.image.add_widget(cam)
+        #cam = AppCamera(index = 0)
+        #cam.center = (cam.size and self.root.ids.image.center)
+        #self.root.ids.image.add_widget(cam)
+        self.root.ids.image.ids.camera.play = True
+        self.root.ids.image.camera.index = 0
 
     def on_stop(self):
         print("on_stop")
