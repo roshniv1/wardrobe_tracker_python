@@ -22,6 +22,7 @@ kv = ('''
     resolution: (640, 480)
     size_hint: None,None
     size: dp(500),dp(500)
+    index: 0
     canvas.before:
         PushMatrix
         Rotate:
@@ -163,8 +164,9 @@ class MainWindow(Screen):
     # Popup to filter item category
     def filter_category(self):
 
-        # self.manager.ids.image.camera.play = False
-        # self.manager.ids.image.remove_widget(self.manager.ids.image.ids.camera)
+        self.manager.ids.image.camera.play = False
+        self.manager.ids.image.camera.index = -1
+        self.manager.ids.image.remove_widget(self.manager.ids.image.ids.camera)
 
         # List of categories to display as buttons
         wardrobe_category = self.manager.category
@@ -249,9 +251,9 @@ class AddWindow(Screen):
                                   size_hint=[0.9, 0.5])
             dup_dialog.open()
 
-            # cam = AppCamera()
-            # cam.center = (cam.size and self.manager.ids.image.center)
-            # self.manager.ids.image.add_widget(cam)
+            cam = AppCamera(resolution = (640, 480))
+            cam.center = (cam.size and self.manager.ids.image.center)
+            self.manager.ids.image.add_widget(cam)
 
         con.commit()
         con.close()
@@ -337,12 +339,13 @@ class MDApp(MDApp):
     def on_pause(self):
         print("on pause")
         self.root.ids.image.ids.camera.play = False
+        self.manager.ids.image.camera.index = -1
         self.root.ids.image.remove_widget(self.root.ids.image.ids.camera)
         return True
 
     def on_resume(self):
         print("on resume")
-        cam = AppCamera()
+        cam = AppCamera(index = 0)
         cam.center = (cam.size and self.root.ids.image.center)
         self.root.ids.image.add_widget(cam)
 
