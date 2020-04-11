@@ -106,6 +106,7 @@ WindowManager:
         
         
 <ImageWindow>:
+    camera: camera.__self__
     on_pre_enter: cam_toolbar.remove_notch()
     
     AppCamera:
@@ -161,6 +162,10 @@ class WindowManager(ScreenManager):
 class MainWindow(Screen):
     # Popup to filter item category
     def filter_category(self):
+
+        # self.manager.ids.image.camera.play = False
+        # self.manager.ids.image.remove_widget(self.manager.ids.image.ids.camera)
+
         # List of categories to display as buttons
         wardrobe_category = self.manager.category
 
@@ -243,6 +248,10 @@ class AddWindow(Screen):
             dup_dialog = MDDialog(title="Existing Item", text="This item already exists", text_button_ok="Go Back",
                                   size_hint=[0.9, 0.5])
             dup_dialog.open()
+
+            # cam = AppCamera()
+            # cam.center = (cam.size and self.manager.ids.image.center)
+            # self.manager.ids.image.add_widget(cam)
 
         con.commit()
         con.close()
@@ -334,7 +343,7 @@ class MDApp(MDApp):
     def on_resume(self):
         print("on resume")
         cam = AppCamera()
-        cam.center = (cam.size and self.root.ids.image.center)
+        #cam.center = (cam.size and self.root.ids.image.center)
         self.root.ids.image.add_widget(cam)
 
     def on_stop(self):
