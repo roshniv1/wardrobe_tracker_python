@@ -337,7 +337,7 @@ class MDApp(MDApp):
 
     def on_pause(self):
         #self.root.ids.image.ids.camera.play = False
-        #self.root.ids.image.camera.index = -1
+        self.root.ids.image.camera.index = -1
         return True
 
 
