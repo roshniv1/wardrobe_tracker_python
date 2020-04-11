@@ -340,11 +340,11 @@ class MDApp(MDApp):
         self.root.ids.image.remove_widget(self.root.ids.image.ids.camera)
         return True
 
-    def on_resume(self):
-        print("on resume")
-        cam = AppCamera()
-        #cam.center = (cam.size and self.root.ids.image.center)
-        self.root.ids.image.add_widget(cam)
+    # def on_resume(self):
+    #     print("on resume")
+    #     cam = AppCamera()
+    #     #cam.center = (cam.size and self.root.ids.image.center)
+    #     self.root.ids.image.add_widget(cam)
 
     def on_stop(self):
         print("on_stop")
