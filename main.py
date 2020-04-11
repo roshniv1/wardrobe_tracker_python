@@ -107,7 +107,7 @@ WindowManager:
         
         
 <ImageWindow>:
-    camera: camera.__self__
+    #camera: camera.__self__
     on_pre_enter: cam_toolbar.remove_notch()
     on_pre_enter: camera.index=0
     
@@ -259,7 +259,6 @@ class AddWindow(Screen):
 
 
 class ImageWindow(Screen):
-    #camera = ObjectProperty(None)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
