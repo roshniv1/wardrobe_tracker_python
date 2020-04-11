@@ -351,7 +351,7 @@ class MDApp(MDApp):
         #cam.center = (cam.size and self.root.ids.image.center)
         #self.root.ids.image.add_widget(cam)
         self.root.ids.image.ids.camera.play = True
-        self.root.ids.image.camera.index = 0
+        self.root.ids.image.ids.camera.index = 0
 
     def on_stop(self):
         print("on_stop")
