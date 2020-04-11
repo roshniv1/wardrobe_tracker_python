@@ -13,12 +13,26 @@ from kivy.uix.popup import Popup
 from kivy.uix.image import Image
 from kivymd.uix.dialog import MDDialog
 from kivy.uix.camera import Camera
-from kivy.clock import Clock
 import sqlite3 as sql
 import time
 import os
 
 kv = ('''
+<AppCamera>:
+    resolution: (640, 480)
+    size_hint: None,None
+    size: dp(500),dp(500)
+    canvas.before:
+        PushMatrix
+        Rotate:
+            angle: -90
+            origin: self.center
+    canvas.after:
+        PopMatrix
+    allow_stretch: True
+    play: True
+    
+
 WindowManager:
     MainWindow:
         name: "Main"
@@ -32,6 +46,8 @@ WindowManager:
     ConfirmWindow:
         name: "Confirm"
         id: confirm
+        
+        
 <MainWindow>:
     MDToolbar:
         title: "Wardrobe Tracker"
@@ -59,6 +75,8 @@ WindowManager:
             row_force_default: True
             size_hint_y: None
             height: self.minimum_height
+            
+            
 <AddWindow>:
     name: "Add"
     MDToolbar:
@@ -85,24 +103,14 @@ WindowManager:
         pos_hint: {"top":0.1}
         size_hint: 1,0.1
         on_press: root.add_item(wardrobe_item.text, wardrobe_category.current_item)
+        
+        
 <ImageWindow>:
     on_pre_enter: cam_toolbar.remove_notch()
-    camera: camera
-    Camera:
+    
+    AppCamera:
         id: camera
-        resolution: (640, 480)
-        size_hint: None,None
         center: self.size and root.center
-        size: dp(500),dp(500)
-        canvas.before:
-            PushMatrix
-            Rotate:
-                angle: -90
-                origin: self.center
-        canvas.after:
-            PopMatrix
-        allow_stretch: True
-        play: True
         
     MDToolbar:
         size_hint:1,0.1
@@ -124,6 +132,7 @@ WindowManager:
         size: dp(50),dp(50)
         on_press: root.capture()
         md_bg_color: (0, 0, 0, 1)
+        
             
 <ConfirmWindow>:
     on_pre_enter: display_image.source = root.manager.ids.image.image_id
@@ -152,8 +161,6 @@ class WindowManager(ScreenManager):
 class MainWindow(Screen):
     # Popup to filter item category
     def filter_category(self):
-        print(self.manager.ids.image.ids.camera)
-        self.manager.ids.image.ids.camera.play = False
         # List of categories to display as buttons
         wardrobe_category = self.manager.category
 
@@ -236,9 +243,6 @@ class AddWindow(Screen):
             dup_dialog = MDDialog(title="Existing Item", text="This item already exists", text_button_ok="Go Back",
                                   size_hint=[0.9, 0.5])
             dup_dialog.open()
-            print(self.manager.ids.image.ids.camera)
-            #cam = Camera(play=True, resolution=(640, 480))
-            self.manager.ids.image.camera.play = True
 
         con.commit()
         con.close()
@@ -265,9 +269,6 @@ class ImageWindow(Screen):
         from android.permissions import request_permission, Permission
         request_permission(Permission.CAMERA)
 
-    def on_pre_enter(self, *args):
-        self.camera.play = True
-
     def capture(self):
         '''
         Function to capture the images and give them the names
@@ -281,6 +282,10 @@ class ImageWindow(Screen):
         self.image_id = os.path.join(root_dir, self.image_id)
         camera.export_to_png(self.image_id)
         self.manager.switch_to(self.manager.ids.confirm, direction = 'left')
+
+
+class AppCamera(Camera):
+    pass
 
 
 class ConfirmWindow(Screen):
@@ -321,10 +326,16 @@ class MDApp(MDApp):
             )
 
     def on_pause(self):
+        print("on pause")
+        self.root.ids.image.ids.camera.play = False
+        self.root.ids.image.remove_widget(self.root.ids.image.ids.camera)
         return True
 
     def on_resume(self):
-        pass
+        print("on resume")
+        cam = AppCamera()
+        cam.center = (cam.size and self.root.ids.image.center)
+        self.root.ids.image.add_widget(cam)
 
     def on_stop(self):
         print("on_stop")
