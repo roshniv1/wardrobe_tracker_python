@@ -109,6 +109,7 @@ WindowManager:
 <ImageWindow>:
     camera: camera.__self__
     on_pre_enter: cam_toolbar.remove_notch()
+    on_pre_enter: camera.index=0
     
     AppCamera:
         id: camera
@@ -308,7 +309,6 @@ class ConfirmWindow(Screen):
 class MDApp(MDApp):
 
     def __init__(self, **kwargs):
-        print("init")
         super().__init__(**kwargs)
         con = sql.connect("demo.db")
         cur = con.cursor()
@@ -321,11 +321,9 @@ class MDApp(MDApp):
         self.screen = Builder.load_string(kv)
 
     def build(self):
-        print("build")
         return self.screen
 
     def on_start(self):
-        print("on_start")
         con = sql.connect("demo.db")
         cur = con.cursor()
         cur.execute("""SELECT * FROM Wardrobe ORDER BY category""")
@@ -337,14 +335,11 @@ class MDApp(MDApp):
             self.root.ids.main.ids.container.add_widget(
                 Image(source=row[2])
             )
-    #
-    # def on_pause(self):
-    #     self.root.ids.image.ids.camera.play = False
-    #     self.root.ids.image.camera.index = -1
-    #     return True
 
-    def on_stop(self):
-        print("on_stop")
+    def on_pause(self):
+        #self.root.ids.image.ids.camera.play = False
+        self.root.ids.image.camera.index = -1
+        return True
 
 
 if __name__ == "__main__":
