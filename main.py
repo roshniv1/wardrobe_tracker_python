@@ -262,7 +262,7 @@ class AddWindow(Screen):
 
 
 class ImageWindow(Screen):
-    camera = ObjectProperty(None)
+    #camera = ObjectProperty(None)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -295,6 +295,10 @@ class ImageWindow(Screen):
         self.image_id = os.path.join(root_dir, self.image_id)
         camera.export_to_png(self.image_id)
         self.manager.switch_to(self.manager.ids.confirm, direction = 'left')
+
+    def on_pre_enter(self, *args):
+        self.camera.play = True
+        self.camera.index = 0
 
 
 class AppCamera(Camera):
@@ -350,8 +354,8 @@ class MDApp(MDApp):
         #cam = AppCamera(index = 0)
         #cam.center = (cam.size and self.root.ids.image.center)
         #self.root.ids.image.add_widget(cam)
-        self.root.ids.image.ids.camera.play = True
-        self.root.ids.image.ids.camera.index = 0
+        #self.root.ids.image.ids.camera.play = True
+        #self.root.ids.image.ids.camera.index = 0
 
     def on_stop(self):
         print("on_stop")
