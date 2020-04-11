@@ -335,10 +335,10 @@ class MDApp(MDApp):
                 Image(source=row[2])
             )
 
-    # def on_pause(self):
-    #     #self.root.ids.image.ids.camera.play = False
-    #     self.root.ids.image.camera.index = -1
-    #     return True
+    def on_pause(self):
+        #self.root.ids.image.ids.camera.play = False
+        #self.root.ids.image.camera.index = -1
+        return True
 
 
 if __name__ == "__main__":
