@@ -339,7 +339,7 @@ class MDApp(MDApp):
     def on_pause(self):
         print("on pause")
         self.root.ids.image.ids.camera.play = False
-        self.manager.ids.image.camera.index = -1
+        self.root.ids.image.camera.index = -1
         self.root.ids.image.remove_widget(self.root.ids.image.ids.camera)
         return True
 
