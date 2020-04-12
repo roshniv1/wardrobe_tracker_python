@@ -1,8 +1,7 @@
 """
 This code creates a basic wardrobe tracker app using the Kivy package. Currently functionality includes the ability
-to add and remove items and updating the database. Planned upgrades include adding photos and item count.
+to add and remove items and updating the database. Planned upgrades include use of front category + removing items.
 """
-from kivy.properties import ObjectProperty
 from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy.lang import Builder
 from kivymd.app import MDApp
@@ -12,148 +11,9 @@ from kivy.uix.button import Button
 from kivy.uix.popup import Popup
 from kivy.uix.image import Image
 from kivymd.uix.dialog import MDDialog
-from kivy.uix.camera import Camera
 import sqlite3 as sql
 import time
 import os
-
-kv = ('''
-<AppCamera>:
-    resolution: (640, 480)
-    size_hint: None,None
-    size: dp(500),dp(500)
-    index: 0
-    canvas.before:
-        PushMatrix
-        Rotate:
-            angle: -90
-            origin: self.center
-    canvas.after:
-        PopMatrix
-    allow_stretch: True
-    play: True
-    
-
-WindowManager:
-    MainWindow:
-        name: "Main"
-        id: main
-    AddWindow:
-        name: "Add"
-        id: add
-    ImageWindow:
-        name: "Image"
-        id: image
-    ConfirmWindow:
-        name: "Confirm"
-        id: confirm
-        
-        
-<MainWindow>:
-    MDToolbar:
-        title: "Wardrobe Tracker"
-        size_hint:1,0.1
-        pos_hint:{'top':1}
-        right_action_items:
-            [('filter', lambda x: root.filter_category()),
-            ('plus', lambda x: root.manager.switch_to(root.manager.ids.add, direction = 'left'))]
-    MDToolbar:
-        title: app.title
-        type: "bottom"
-        mode: "free-end"
-        icon: ""
-    ScrollView:
-        pos_hint:{'top':0.9}
-        size_hint:1,0.79
-        do_scroll_x: False
-        GridLayout:
-            id: container
-            cols: 2
-            spacing: 0,50
-            mipmap: True
-            row_default_height:
-                (self.width - self.cols*self.spacing[0])/self.cols
-            row_force_default: True
-            size_hint_y: None
-            height: self.minimum_height
-            
-            
-<AddWindow>:
-    name: "Add"
-    MDToolbar:
-        size_hint:1,0.1
-        pos_hint:{'top':1}
-        left_action_items:
-            [('arrow-left', lambda x: root.manager.switch_to(root.manager.ids.main, direction = 'right'))]
-        right_action_items:
-            [('camera', lambda x: root.manager.switch_to(root.manager.ids.image, direction = 'left'))]
-    MDTextField:
-        id: wardrobe_item
-        pos_hint: {"top": 0.85, "center_x": 0.5}
-        size_hint: 0.9,None
-        helper_text: "Name your wardrobe item and select category"
-        helper_text_mode: "persistent"
-    MDDropDownItem:
-        id: wardrobe_category
-        pos_hint: {"top":0.5, "center_x": 0.5}
-        items: root.manager.category
-        dropdown_bg: [1, 1, 1, 1]
-        dropdown_width_mult : 4
-    Button:
-        text: "Add"
-        pos_hint: {"top":0.1}
-        size_hint: 1,0.1
-        on_press: root.add_item(wardrobe_item.text, wardrobe_category.current_item)
-        
-        
-<ImageWindow>:
-    #camera: camera.__self__
-    on_pre_enter: cam_toolbar.remove_notch()
-    on_pre_enter: camera.index=0
-    
-    AppCamera:
-        id: camera
-        center: self.size and root.center
-        
-    MDToolbar:
-        size_hint:1,0.1
-        pos_hint:{'top':1}
-        left_action_items:
-            [('arrow-left', lambda x: root.manager.switch_to(root.manager.ids.add, direction = 'right'))]
-            
-    MDToolbar:
-        id: cam_toolbar
-        icon: "circle"
-        type: "bottom"
-        on_md_bg_color: (0.4, 0.4, 0.4, 1)
-        
-    MDFloatingActionButton:
-        elevation_normal: 8
-        icon: ''
-        pos_hint: {"top": 0.08, "center_x": 0.5}
-        size_hint: None,None
-        size: dp(50),dp(50)
-        on_press: root.capture()
-        md_bg_color: (0, 0, 0, 1)
-        
-            
-<ConfirmWindow>:
-    on_pre_enter: display_image.source = root.manager.ids.image.image_id
-    Image:
-        id: display_image
-        pos_hint:{'top': 1}
-    MDToolbar:
-        size_hint:1,0.1
-        pos_hint:{'top':1}
-        left_action_items:
-            [('arrow-left', lambda x: root.manager.switch_to(root.manager.ids.image, direction = 'right'))]
-        right_action_items:
-            [('check', lambda x: root.manager.switch_to(root.manager.ids.add, direction = 'right'))]
-        
-''')
-
-# need to -1 count when removing items too. camera wrong way around (rot left 90 degrees), does not track image
-# (need android photo folder), no option to switch to front camera
 
 
 class WindowManager(ScreenManager):
@@ -292,13 +152,9 @@ class ImageWindow(Screen):
         camera.export_to_png(self.image_id)
         self.manager.switch_to(self.manager.ids.confirm, direction = 'left')
 
-    # def on_pre_enter(self, *args):
-    #     self.camera.play = True
-    #     self.camera.index = 0
-
-
-class AppCamera(Camera):
-    pass
+    def on_pre_enter(self, *args):
+        self.ids.cam_toolbar.remove_notch()
+        self.ids.camera.index = 0
 
 
 class ConfirmWindow(Screen):
@@ -317,7 +173,7 @@ class MDApp(MDApp):
         self.title = "Item Count: " + str(cur.fetchall()[0][0])
         con.commit()
         con.close()
-        self.screen = Builder.load_string(kv)
+        self.screen = Builder.load_file("my.kv")
 
     def build(self):
         return self.screen
@@ -336,7 +192,6 @@ class MDApp(MDApp):
             )
 
     def on_pause(self):
-        #self.root.ids.image.ids.camera.play = False
         self.root.ids.image.ids.camera.index = -1
         return True
 
