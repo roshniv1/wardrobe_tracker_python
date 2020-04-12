@@ -152,6 +152,8 @@ class ImageWindow(Screen):
 
     def on_pre_enter(self, *args):
         self.ids.cam_toolbar.remove_notch()
+
+    def on_enter(self):
         self.ids.camera.play = True
         #self.ids.camera.index = 0
 
