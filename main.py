@@ -25,8 +25,7 @@ class MainWindow(Screen):
     # Popup to filter item category
     def filter_category(self):
 
-        # self.manager.ids.image.camera.play = False
-        # self.manager.ids.image.camera.index = -1
+        # self.manager.ids.image.ids.camera.index = -1
 
         # List of categories to display as buttons
         wardrobe_category = self.manager.category
@@ -111,8 +110,7 @@ class AddWindow(Screen):
                                   size_hint=[0.9, 0.5])
             dup_dialog.open()
 
-            # self.manager.ids.image.ids.camera.play = True
-            # self.manager.ids.image.ids.camera.index = 0
+            #self.manager.ids.image.ids.camera.index = 0
 
         con.commit()
         con.close()
@@ -154,7 +152,7 @@ class ImageWindow(Screen):
 
     def on_pre_enter(self, *args):
         self.ids.cam_toolbar.remove_notch()
-        self.ids.camera.index = 0
+        #self.ids.camera.index = 0
 
 
 class ConfirmWindow(Screen):
@@ -194,6 +192,9 @@ class MDApp(MDApp):
     def on_pause(self):
         self.root.ids.image.ids.camera.index = -1
         return True
+
+    def on_resume(self):
+        self.root.ids.image.ids.camera.index = 0
 
 
 if __name__ == "__main__":
