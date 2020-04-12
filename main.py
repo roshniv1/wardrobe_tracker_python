@@ -152,6 +152,7 @@ class ImageWindow(Screen):
 
     def on_pre_enter(self, *args):
         self.ids.cam_toolbar.remove_notch()
+        self.ids.camera.play = True
         #self.ids.camera.index = 0
 
 
@@ -190,11 +191,8 @@ class MDApp(MDApp):
             )
 
     def on_pause(self):
-        self.root.ids.image.ids.camera.index = -1
+        self.root.ids.image.ids.camera.play = False
         return True
-
-    def on_resume(self):
-        self.root.ids.image.ids.camera.index = 0
 
 
 if __name__ == "__main__":
